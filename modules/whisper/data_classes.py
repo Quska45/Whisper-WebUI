@@ -310,6 +310,7 @@ class WhisperParams(BaseParams):
         description="Maximum initial timestamp"
     )
     word_timestamps: bool = Field(default=False, description="Extract word-level timestamps")
+    highlight_words: bool = Field(default=True, description="Write word-level highlighted subtitles")
     prepend_punctuations: Optional[str] = Field(
         default="\"'“¿([{-",
         description="Punctuations to merge with next word"
@@ -499,6 +500,11 @@ class WhisperParams(BaseParams):
                 label="Word Timestamps",
                 value=defaults.get("word_timestamps", cls.__fields__["word_timestamps"].default),
                 info="Extract word-level timestamps"
+            ),
+            gr.Checkbox(
+                label="Highlight Words",
+                value=defaults.get("highlight_words", cls.__fields__["highlight_words"].default),
+                info="Create word-level highlighted subtitles"
             ),
             gr.Textbox(
                 label="Prepend Punctuations",

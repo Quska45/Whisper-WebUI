@@ -258,7 +258,10 @@ class BaseTranscriptionPipeline(ABC):
         try:
             params = TranscriptionPipelineParams.from_list(list(pipeline_params))
             writer_options = {
-                "highlight_words": True if params.whisper.word_timestamps else False
+                "highlight_words": params.whisper.highlight_words,
+                "max_line_width": 18,
+                "max_line_count": 2,
+                "subtitle_pause_threshold": 0.6,
             }
 
             if input_folder_path:
@@ -350,7 +353,10 @@ class BaseTranscriptionPipeline(ABC):
         try:
             params = TranscriptionPipelineParams.from_list(list(pipeline_params))
             writer_options = {
-                "highlight_words": True if params.whisper.word_timestamps else False
+                "highlight_words": params.whisper.highlight_words,
+                "max_line_width": 18,
+                "max_line_count": 2,
+                "subtitle_pause_threshold": 0.6,
             }
 
             progress(0, desc="Loading Audio..")
@@ -412,7 +418,10 @@ class BaseTranscriptionPipeline(ABC):
         try:
             params = TranscriptionPipelineParams.from_list(list(pipeline_params))
             writer_options = {
-                "highlight_words": True if params.whisper.word_timestamps else False
+                "highlight_words": params.whisper.highlight_words,
+                "max_line_width": 18,
+                "max_line_count": 2,
+                "subtitle_pause_threshold": 0.6,
             }
 
             progress(0, desc="Loading Audio from Youtube..")

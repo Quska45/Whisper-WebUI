@@ -12,6 +12,11 @@ from modules.whisper.data_classes import Segment, Word
 from .files_manager import read_file
 
 
+DEFAULT_SUBTITLE_MAX_LINE_WIDTH = 18
+DEFAULT_SUBTITLE_MAX_LINE_COUNT = 2
+DEFAULT_SUBTITLE_PAUSE_THRESHOLD = 0.6
+
+
 def format_timestamp(
     seconds: float, always_include_hours: bool = True, decimal_marker: str = ","
 ) -> str:
@@ -133,10 +138,20 @@ class SubtitlesWriter(ResultWriter):
         highlight_words: bool = False,
         align_lrc_words: bool = False,
         max_words_per_line: Optional[int] = None,
+        subtitle_pause_threshold: Optional[float] = None,
     ):
         options = options or {}
-        max_line_width = max_line_width or options.get("max_line_width")
-        max_line_count = max_line_count or options.get("max_line_count")
+        max_line_width = max_line_width if max_line_width is not None else options.get(
+            "max_line_width", DEFAULT_SUBTITLE_MAX_LINE_WIDTH
+        )
+        max_line_count = max_line_count if max_line_count is not None else options.get(
+            "max_line_count", DEFAULT_SUBTITLE_MAX_LINE_COUNT
+        )
+        subtitle_pause_threshold = (
+            subtitle_pause_threshold
+            if subtitle_pause_threshold is not None
+            else options.get("subtitle_pause_threshold", DEFAULT_SUBTITLE_PAUSE_THRESHOLD)
+        )
         highlight_words = highlight_words or options.get("highlight_words", False)
         align_lrc_words = align_lrc_words or options.get("align_lrc_words", False)
         max_words_per_line = max_words_per_line or options.get("max_words_per_line")
@@ -149,7 +164,7 @@ class SubtitlesWriter(ResultWriter):
             line_count = 1
             # the next subtitle to yield (a list of word timings with whitespace)
             subtitle: List[dict] = []
-            last: float = get_start(result["segments"]) or 0.0
+            last_end: float = get_start(result["segments"]) or 0.0
             for segment in result["segments"]:
                 chunk_index = 0
                 words_count = max_words_per_line
@@ -162,7 +177,7 @@ class SubtitlesWriter(ResultWriter):
                     ):
                         timing = original_timing.copy()
                         long_pause = (
-                            not preserve_segments and timing["start"] - last > 3.0
+                            not preserve_segments and timing["start"] - last_end > subtitle_pause_threshold
                         )
                         has_room = line_len + len(timing["word"]) <= max_line_width
                         seg_break = i == 0 and len(subtitle) > 0 and preserve_segments
@@ -193,7 +208,7 @@ class SubtitlesWriter(ResultWriter):
                                 timing["word"] = "\n" + timing["word"]
                             line_len = len(timing["word"].strip())
                         subtitle.append(timing)
-                        last = timing["start"]
+                        last_end = timing["end"]
                     chunk_index += max_words_per_line
             if len(subtitle) > 0:
                 yield subtitle
